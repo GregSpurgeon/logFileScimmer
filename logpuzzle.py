@@ -13,12 +13,13 @@ Here's what a puzzle URL looks like (spread out onto multiple lines):
 HTTP/1.0" 302 528 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
 rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"
 """
-
 import os
 import re
 import sys
 import urllib.request
 import argparse
+
+author = """Greg Spurgeon with help from Jasmyne and Joseph"""
 
 
 def read_urls(filename):
@@ -26,8 +27,19 @@ def read_urls(filename):
     extracting the hostname from the filename itself, sorting
     alphabetically in increasing order, and screening out duplicates.
     """
-    # +++your code here+++
-    pass
+    urls = []
+    hostname = filename.find("_")
+    path = "http://" + filename[hostname + 1:]
+    print(path)
+    with open(filename, 'r') as f:
+        for line in f:
+            matches = re.findall(r'GET (\S+) HTTP', line)
+            for match in matches:
+                if match not in urls and 'puzzle' in match:
+                    urls.append(match)
+    urls.sort(key=lambda x: x[-9:-4])
+    urls = list(map(lambda tag: path + tag, urls))
+    return urls
 
 
 def download_images(img_urls, dest_dir):
@@ -38,8 +50,23 @@ def download_images(img_urls, dest_dir):
     to show each local image file.
     Creates the directory if necessary.
     """
-    # +++your code here+++
-    pass
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+
+    with open(os.path.join(dest_dir, 'index.html'), 'w') as index:
+        print(index)
+        index.write('<html><body>\n')
+
+        i = 0
+        for img_url in img_urls:
+            filename = 'img{}'.format(i)
+            print('Retrieving...')
+            join = os.path.join(dest_dir, filename)
+            urllib.request.urlretrieve(img_url, join)
+            index.write('<img src="{}"/>'.format(filename))
+            i += 1
+
+        index.write('\n</body></html>\n')
 
 
 def create_parser():
